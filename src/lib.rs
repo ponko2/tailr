@@ -91,7 +91,26 @@ fn print_lines(mut file: impl BufRead, num_lines: &TakeValue, total_lines: u64) 
 }
 
 fn get_start_index(take_val: &TakeValue, total: u64) -> Option<u64> {
-    todo!()
+    match *take_val {
+        PlusZero => {
+            if total > 0 {
+                Some(0)
+            } else {
+                None
+            }
+        }
+        TakeNum(num) => {
+            if num == 0 || total == 0 || num.max(0) as u64 > total {
+                None
+            } else {
+                Some(if num < 0 {
+                    total.saturating_sub(num.unsigned_abs())
+                } else {
+                    num as u64 - 1
+                })
+            }
+        }
+    }
 }
 
 #[cfg(test)]
