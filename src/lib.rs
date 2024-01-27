@@ -53,9 +53,10 @@ pub fn run(args: Args) -> Result<()> {
     for filename in &args.files {
         match File::open(filename) {
             Err(err) => eprintln!("{filename}: {err}"),
-            Ok(_) => {
+            Ok(file) => {
                 let (total_lines, total_bytes) = count_lines_bytes(filename)?;
-                println!("{filename} has {total_lines} lines and {total_bytes} bytes",);
+                let file = BufReader::new(file);
+                print_lines(file, &args.lines, total_lines)?;
             }
         }
     }
@@ -87,7 +88,18 @@ where
 }
 
 fn print_lines(mut file: impl BufRead, num_lines: &TakeValue, total_lines: u64) -> Result<()> {
-    todo!()
+    if let Some(start) = get_start_index(num_lines, total_lines) {
+        let mut line_num = 0;
+        let mut buf = vec![];
+        while file.read_until(b'\n', &mut buf)? > 0 {
+            if line_num >= start {
+                print!("{}", String::from_utf8_lossy(&buf));
+            }
+            line_num += 1;
+            buf.clear();
+        }
+    }
+    Ok(())
 }
 
 fn get_start_index(take_val: &TakeValue, total: u64) -> Option<u64> {
