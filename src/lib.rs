@@ -5,7 +5,19 @@ use std::str::FromStr;
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
-pub struct Args {}
+pub struct Args {
+    #[arg(value_name = "FILE", help = "Input file(s)", required = true)]
+    files: Vec<String>,
+
+    #[arg(short = 'n', long, help = "Number of lines", default_value = "10")]
+    lines: TakeValue,
+
+    #[arg(short = 'c', long, conflicts_with = "lines", help = "Number of bytes")]
+    bytes: Option<TakeValue>,
+
+    #[arg(short, long, help = "Suppress headers")]
+    quiet: bool,
+}
 
 #[derive(Debug, Clone, PartialEq)]
 enum TakeValue {
