@@ -1,7 +1,7 @@
 use crate::TakeValue::*;
 use anyhow::Result;
 use clap::Parser;
-use std::{fs::File, str::FromStr};
+use std::{fs::File, io::BufRead, str::FromStr};
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
@@ -58,13 +58,21 @@ pub fn run(args: Args) -> Result<()> {
     Ok(())
 }
 
-fn count_lines_bytes(filename: &str) -> Result<(i64, i64)> {
+fn count_lines_bytes(filename: &str) -> Result<(u64, u64)> {
+    todo!()
+}
+
+fn print_lines(mut file: impl BufRead, num_lines: &TakeValue, total_lines: u64) -> Result<()> {
+    todo!()
+}
+
+fn get_start_index(take_val: &TakeValue, total: u64) -> Option<u64> {
     todo!()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{count_lines_bytes, TakeValue, TakeValue::*};
+    use super::{count_lines_bytes, get_start_index, TakeValue, TakeValue::*};
     use std::str::FromStr;
 
     #[test]
@@ -76,6 +84,40 @@ mod tests {
         let res = count_lines_bytes("tests/inputs/ten.txt");
         assert!(res.is_ok());
         assert_eq!(res.unwrap(), (10, 49));
+    }
+
+    #[test]
+    fn test_get_start_index() {
+        // 空のファイル(0行/バイト)に対して+0を指定したときはNoneを返す
+        assert_eq!(get_start_index(&PlusZero, 0), None);
+
+        // 空でないファイルに対して+0を指定したときは0を返す
+        assert_eq!(get_start_index(&PlusZero, 1), Some(0));
+
+        // 0行/バイトを指定した場合はNoneを返す
+        assert_eq!(get_start_index(&TakeNum(0), 1), None);
+
+        // 空のファイルから行/バイトを取得するとNoneを返す
+        assert_eq!(get_start_index(&TakeNum(1), 0), None);
+
+        // ファイルの行数やバイト数を超える位置を取得しようとするとNoneを返す
+        assert_eq!(get_start_index(&TakeNum(2), 1), None);
+
+        // 開始行や開始バイトがファイルの行数やバイト数より小さい場合、
+        // 開始行や開始バイトより1小さい値を返す
+        assert_eq!(get_start_index(&TakeNum(1), 10), Some(0));
+        assert_eq!(get_start_index(&TakeNum(2), 10), Some(1));
+        assert_eq!(get_start_index(&TakeNum(3), 10), Some(2));
+
+        // 開始行や開始バイトが負の場合、
+        // ファイルの行数/バイト数に開始行/バイトを足した結果を返す
+        assert_eq!(get_start_index(&TakeNum(-1), 10), Some(9));
+        assert_eq!(get_start_index(&TakeNum(-2), 10), Some(8));
+        assert_eq!(get_start_index(&TakeNum(-3), 10), Some(7));
+
+        // 開始行や開始バイトが負で、足した結果が0より小さい場合、
+        // ファイル全体を表示するために0を返す
+        assert_eq!(get_start_index(&TakeNum(-20), 10), Some(0));
     }
 
     #[test]
