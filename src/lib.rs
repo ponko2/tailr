@@ -1,7 +1,7 @@
 use crate::TakeValue::*;
 use anyhow::Result;
 use clap::Parser;
-use std::str::FromStr;
+use std::{fs::File, str::FromStr};
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
@@ -46,7 +46,12 @@ pub fn get_args() -> Result<Args> {
 }
 
 pub fn run(args: Args) -> Result<()> {
-    dbg!(args);
+    for filename in &args.files {
+        match File::open(filename) {
+            Err(err) => eprintln!("{filename}: {err}"),
+            Ok(_) => println!("Opened {filename}"),
+        }
+    }
     Ok(())
 }
 
