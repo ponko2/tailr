@@ -1,7 +1,11 @@
 use crate::TakeValue::*;
 use anyhow::Result;
 use clap::Parser;
-use std::{fs::File, io::BufRead, str::FromStr};
+use std::{
+    fs::File,
+    io::{BufRead, Read, Seek},
+    str::FromStr,
+};
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
@@ -60,6 +64,13 @@ pub fn run(args: Args) -> Result<()> {
 
 fn count_lines_bytes(filename: &str) -> Result<(u64, u64)> {
     todo!()
+}
+
+fn print_bytes<T>(mut file: T, num_bytes: &TakeValue, total_bytes: u64) -> Result<()>
+where
+    T: Read + Seek,
+{
+    todo!();
 }
 
 fn print_lines(mut file: impl BufRead, num_lines: &TakeValue, total_lines: u64) -> Result<()> {
