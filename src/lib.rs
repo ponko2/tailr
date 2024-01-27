@@ -3,7 +3,7 @@ use anyhow::Result;
 use clap::Parser;
 use std::{
     fs::File,
-    io::{BufRead, BufReader, Read, Seek},
+    io::{BufRead, BufReader, Read, Seek, SeekFrom},
     str::FromStr,
 };
 
@@ -50,13 +50,21 @@ pub fn get_args() -> Result<Args> {
 }
 
 pub fn run(args: Args) -> Result<()> {
-    for filename in &args.files {
+    let num_files = args.files.len();
+    for (file_num, filename) in args.files.iter().enumerate() {
         match File::open(filename) {
             Err(err) => eprintln!("{filename}: {err}"),
             Ok(file) => {
+                if !args.quiet && num_files > 1 {
+                    println!("{}==> {filename} <==", if file_num > 0 { "\n" } else { "" });
+                }
                 let (total_lines, total_bytes) = count_lines_bytes(filename)?;
                 let file = BufReader::new(file);
-                print_lines(file, &args.lines, total_lines)?;
+                if let Some(num_bytes) = &args.bytes {
+                    print_bytes(file, num_bytes, total_bytes)?;
+                } else {
+                    print_lines(file, &args.lines, total_lines)?;
+                }
             }
         }
     }
@@ -84,7 +92,15 @@ fn print_bytes<T>(mut file: T, num_bytes: &TakeValue, total_bytes: u64) -> Resul
 where
     T: Read + Seek,
 {
-    todo!();
+    if let Some(start) = get_start_index(num_bytes, total_bytes) {
+        file.seek(SeekFrom::Start(start))?;
+        let mut buf = vec![];
+        file.read_to_end(&mut buf)?;
+        if !buf.is_empty() {
+            print!("{}", String::from_utf8_lossy(&buf));
+        }
+    }
+    Ok(())
 }
 
 fn print_lines(mut file: impl BufRead, num_lines: &TakeValue, total_lines: u64) -> Result<()> {
