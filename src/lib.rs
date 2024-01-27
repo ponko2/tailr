@@ -49,16 +49,34 @@ pub fn run(args: Args) -> Result<()> {
     for filename in &args.files {
         match File::open(filename) {
             Err(err) => eprintln!("{filename}: {err}"),
-            Ok(_) => println!("Opened {filename}"),
+            Ok(_) => {
+                let (total_lines, total_bytes) = count_lines_bytes(filename)?;
+                println!("{filename} has {total_lines} lines and {total_bytes} bytes",);
+            }
         }
     }
     Ok(())
 }
 
+fn count_lines_bytes(filename: &str) -> Result<(i64, i64)> {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{TakeValue, TakeValue::*};
+    use super::{count_lines_bytes, TakeValue, TakeValue::*};
     use std::str::FromStr;
+
+    #[test]
+    fn test_count_lines_bytes() {
+        let res = count_lines_bytes("tests/inputs/one.txt");
+        assert!(res.is_ok());
+        assert_eq!(res.unwrap(), (1, 24));
+
+        let res = count_lines_bytes("tests/inputs/ten.txt");
+        assert!(res.is_ok());
+        assert_eq!(res.unwrap(), (10, 49));
+    }
 
     #[test]
     fn test_parse_num() {
