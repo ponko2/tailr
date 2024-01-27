@@ -1,3 +1,4 @@
+use crate::TakeValue::*;
 use anyhow::Result;
 use clap::Parser;
 use std::str::FromStr;
@@ -16,7 +17,15 @@ impl FromStr for TakeValue {
     type Err = std::num::ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
+        let num = s
+            .starts_with(['+', '-'])
+            .then(|| s.parse())
+            .unwrap_or_else(|| s.parse().map(i64::wrapping_neg))?;
+        if num == 0 && s.starts_with('+') {
+            Ok(PlusZero)
+        } else {
+            Ok(TakeNum(num))
+        }
     }
 }
 
