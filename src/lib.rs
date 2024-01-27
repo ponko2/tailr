@@ -3,7 +3,7 @@ use anyhow::Result;
 use clap::Parser;
 use std::{
     fs::File,
-    io::{BufRead, Read, Seek},
+    io::{BufRead, BufReader, Read, Seek},
     str::FromStr,
 };
 
@@ -63,7 +63,20 @@ pub fn run(args: Args) -> Result<()> {
 }
 
 fn count_lines_bytes(filename: &str) -> Result<(u64, u64)> {
-    todo!()
+    let mut file = BufReader::new(File::open(filename)?);
+    let mut num_lines = 0;
+    let mut num_bytes = 0;
+    let mut buf = vec![];
+    loop {
+        let bytes_read = file.read_until(b'\n', &mut buf)?;
+        if bytes_read == 0 {
+            break;
+        }
+        num_lines += 1;
+        num_bytes += bytes_read as u64;
+        buf.clear();
+    }
+    Ok((num_lines, num_bytes))
 }
 
 fn print_bytes<T>(mut file: T, num_bytes: &TakeValue, total_bytes: u64) -> Result<()>
